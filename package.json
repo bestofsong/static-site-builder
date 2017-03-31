@@ -1,0 +1,32 @@
+{
+  "name": "static-site-builder",
+  "version": "0.0.1",
+  "description": "add index.html to each directory in a directory hierarchy listing files in each thus creating a static web site",
+  "main": "index.js",
+  "dependencies": {
+    "directory-traverser": "^0.0.1",
+    "commander": "^2.9.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "gen-site": "./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bestofsong/static-site-builder.git"
+  },
+  "keywords": [
+    "static",
+    "web",
+    "site",
+    "builder"
+  ],
+  "author": "wansong",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bestofsong/static-site-builder/issues"
+  },
+  "homepage": "https://github.com/bestofsong/static-site-builder#readme"
+}
