@@ -8,6 +8,7 @@ program
   .option('-p, --prefix [string]', '从服务器根目录到发布的根目录（包含）的路径，\
     以/作为起始字符，如果工作目录在服务器根目录或更上层，\
     -p = /，如 generate -r ./some/path/to/webroot/then/to/the/published/static/dir -p /')
+  .option('--css-path [string]', '用于模版的css文件链接，如/css/base.css')
   .option('-V, --verbose', '打印日志')
   .parse(process.argv);
 
@@ -28,8 +29,10 @@ function generate(root, prefix, htmlTemplate, options) {
     filenames.forEach(function(filename) {
       if (!excludeFile || (!stringMatch(filename, excludeFile) && !stringMatch(filename, excludeDir))) {
         var abspath = dir + '/' + filename;
+        var stat = fs.statSync(abspath);
+        var name = stat && stat.isDirectory() ? (filename + '/') : filename;
         var relpath = pref + abspath.substr(root.length, abspath.length - root.length);
-        aTags.push('<a href="' + relpath + '">' + relpath + '</a>');
+        aTags.push('<a href="' + relpath + '">' + name + '</a>');
         aTags.push('<br/>');
       } else {
         verbose && console.log('ignoring file: ',filename);
@@ -64,10 +67,17 @@ function save(path, content) {
   return true;
 }
 
+var htmlTemplate = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>{title}</title>{placeholder::link}</head><body>{body}</body></html>\n';
+var linkRegex = /\{placeholder::link\}/;
+if (program.cssPath) {
+  htmlTemplate = htmlTemplate.replace(linkRegex, '<link rel="stylesheet" type="text/css" href="' + program.cssPath + '">');
+} else {
+  htmlTemplate = htmlTemplate.replace(linkRegex,  '');
+}
 generate(
   program.rootDir,
   program.prefix,
-  '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>{title}</title></head><body>{body}</body></html>\n',
+  htmlTemplate,
   {
     excludeDir: /.*node_modules|^\.+[^/]/,
     excludeFile: /index.html|^\.+[^/]/,

@@ -1,6 +1,6 @@
 {
   "name": "static-site-builder",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "add index.html to each directory in a directory hierarchy listing files in each thus creating a static web site",
   "main": "index.js",
   "dependencies": {
