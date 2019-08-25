@@ -1,11 +1,11 @@
 {
   "name": "static-site-builder",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "add index.html to each directory in a directory hierarchy listing files in each thus creating a static web site",
   "main": "index.js",
   "dependencies": {
-    "directory-traverser": "^0.0.4",
-    "commander": "^2.9.0"
+    "commander": "^2.9.0",
+    "directory-traverser": "^0.0.4"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

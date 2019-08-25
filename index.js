@@ -4,17 +4,13 @@ var walk = require('directory-traverser');
 var fs = require('fs');
 
 program
-  .option('-r, --root-dir [string]', '发布的根目录')
-  .option('-p, --prefix [string]', '从服务器根目录到发布的根目录（包含）的路径，\
-    以/作为起始字符，如果工作目录在服务器根目录或更上层，\
-    -p = /，如 generate -r ./some/path/to/webroot/then/to/the/published/static/dir -p /')
+  .option('-d, --dir [string]', '发布的文件夹')
   .option('--css-path [string]', '用于模版的css文件链接，如/css/base.css')
   .option('-V, --verbose', '打印日志')
   .parse(process.argv);
 
-function generate(root, prefix, htmlTemplate, options) {
-  root = trimTrailingSlash(root);
-  var pref = trimTrailingSlash(prefix);
+function generate(rootDir, htmlTemplate, options) {
+  rootDir = trimTrailingSlash(rootDir);
   var excludeDir = options && options.excludeDir;
   var excludeFile = options && options.excludeFile;
   var verbose = !!(options && options.verbose);
@@ -23,16 +19,15 @@ function generate(root, prefix, htmlTemplate, options) {
     return !excludeDir || !stringMatch(parts[parts.length - 1], excludeDir);
   };
 
-  return walk(root, dirFilter, function(dir, filenames) {
-    var html = htmlTemplate.replace(/\{title\}/, pref + dir.substr(root.length, dir.length - root.length));
+  return walk(rootDir, dirFilter, function(dir, filenames) {
+    var html = htmlTemplate.replace(/\{title\}/, dir.substr(rootDir.length + 1, dir.length - rootDir.length));
     var aTags = [];
     filenames.forEach(function(filename) {
       if (!excludeFile || (!stringMatch(filename, excludeFile) && !stringMatch(filename, excludeDir))) {
         var abspath = dir + '/' + filename;
         var stat = fs.statSync(abspath);
         var name = stat && stat.isDirectory() ? (filename + '/') : filename;
-        var relpath = pref + abspath.substr(root.length, abspath.length - root.length);
-        aTags.push('<a href="' + relpath + '">' + name + '</a>');
+        aTags.push('<a href="' + name + '">' + name + '</a>\n');
         aTags.push('<br/>');
       } else {
         verbose && console.log('ignoring file: ',filename);
@@ -50,11 +45,11 @@ function generate(root, prefix, htmlTemplate, options) {
   }, { verbose: verbose });
 }
 
-function trimTrailingSlash(root) {
-  while(root && root.length && root[root.length - 1] === '/') {
-    root = root.substr(0, root.length - 1);
+function trimTrailingSlash(rootDir) {
+  while(rootDir && rootDir.length && rootDir[rootDir.length - 1] === '/') {
+    rootDir = rootDir.substr(0, rootDir.length - 1);
   }
-  return root;
+  return rootDir;
 }
 
 function stringMatch(str, reg) {
@@ -67,7 +62,15 @@ function save(path, content) {
   return true;
 }
 
-var htmlTemplate = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>{title}</title>{placeholder::link}</head><body>{body}</body></html>\n';
+var htmlTemplate = `
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="UTF-8"><title>{title}</title>{placeholder::link}
+    </head>
+    <body>{body}</body>
+  </html>
+`;
 var linkRegex = /\{placeholder::link\}/;
 if (program.cssPath) {
   htmlTemplate = htmlTemplate.replace(linkRegex, '<link rel="stylesheet" type="text/css" href="' + program.cssPath + '">');
@@ -75,8 +78,7 @@ if (program.cssPath) {
   htmlTemplate = htmlTemplate.replace(linkRegex,  '');
 }
 generate(
-  program.rootDir,
-  program.prefix,
+  program.dir,
   htmlTemplate,
   {
     excludeDir: /.*node_modules|^\.+[^/]/,
